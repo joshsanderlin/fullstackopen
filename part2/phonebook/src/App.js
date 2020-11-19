@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import peopleService from './services/people'
 
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
@@ -12,15 +12,12 @@ const App = () => {
   const [ filter, setFilter ] = useState('')
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/people')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPeople(response.data)
+    peopleService
+      .getAll()
+      .then(initialPeople => {
+        setPeople(initialPeople)
       })
   }, [])
-  console.log('render', people.length, 'people')
 
   const addPerson = (event) => {
     event.preventDefault()
@@ -30,13 +27,36 @@ const App = () => {
       number: newNumber
     }
 
-    if(people.some((p) => p.name === personObject.name)) {
-      window.alert(`${personObject.name} has already been added to the phonebook!`)
-    } else {
-      setPeople(people.concat(personObject))
+    const clearForm = () => {
+      setNewName('')
+      setNewNumber('')
     }
-    setNewName('')
-    setNewNumber('')
+
+    if(people.some((p) => p.name === personObject.name)) {
+      let existingPerson = people.filter((p) => p.name === personObject.name)[0]
+      if(window.confirm(`${personObject.name} has already been added to the phonebook, replace the old number with this new one?`)) {
+        peopleService
+          .update(existingPerson.id, { ...existingPerson, ...personObject })
+          .then(returnedPerson => {
+            setPeople(people.map(person => person.id !== existingPerson.id ? person : returnedPerson))
+            clearForm()
+          })
+          .catch(error => {
+            alert(`the person '${existingPerson.name}' was already deleted from the server`)
+            setPeople(people.filter(person => person.id !== existingPerson.id))
+            clearForm()
+          })
+      } else {
+        clearForm()
+      }
+    } else {
+      peopleService
+        .create(personObject)
+        .then(returnedPerson => {
+          setPeople(people.concat(returnedPerson))
+          clearForm()
+        })
+    }
   }
 
   const handleNameChange = (event) => {
@@ -49,6 +69,16 @@ const App = () => {
 
   const handleFilterChange = (event) => {
     setFilter(event.target.value)
+  }
+
+  const destroyPerson = (person) => () => {
+    if(window.confirm(`Delete ${person.name}?`)) {
+      peopleService
+        .destroy(person.id)
+        .then(result => {
+          setPeople(people.filter((personIter) => personIter.id !== person.id))
+        })
+    }
   }
 
   const peopleToShow = people.filter((person) => person.name.toLowerCase().includes(filter.toLowerCase()))
@@ -65,8 +95,7 @@ const App = () => {
         newNumber={newNumber}
         handleNumberChange={handleNumberChange}
       />
-      <People people={peopleToShow} />
-      <div>debug: {filter}</div>
+      <People people={peopleToShow} destroyPerson={destroyPerson} />
     </div>
   )
 }
