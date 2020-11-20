@@ -3,6 +3,8 @@ import peopleService from './services/people'
 
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
+import SuccessNotification from './components/SuccessNotification'
+import ErrorNotification from './components/ErrorNotification'
 import People from './components/People'
 
 const App = () => {
@@ -10,6 +12,8 @@ const App = () => {
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
   const [ filter, setFilter ] = useState('')
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
 
   useEffect(() => {
     peopleService
@@ -39,10 +43,17 @@ const App = () => {
           .update(existingPerson.id, { ...existingPerson, ...personObject })
           .then(returnedPerson => {
             setPeople(people.map(person => person.id !== existingPerson.id ? person : returnedPerson))
+            setSuccessMessage(`${existingPerson.name}'s number has been updated.`)
+            setTimeout(() => {
+              setSuccessMessage(null)
+            }, 5000)
             clearForm()
           })
           .catch(error => {
-            alert(`the person '${existingPerson.name}' was already deleted from the server`)
+            setErrorMessage(`'${existingPerson.name}' was already deleted!`)
+            setTimeout(() => {
+              setErrorMessage(null)
+            }, 5000)
             setPeople(people.filter(person => person.id !== existingPerson.id))
             clearForm()
           })
@@ -54,6 +65,10 @@ const App = () => {
         .create(personObject)
         .then(returnedPerson => {
           setPeople(people.concat(returnedPerson))
+          setSuccessMessage(`${returnedPerson.name} created!`)
+          setTimeout(() => {
+            setSuccessMessage(null)
+          }, 5000)
           clearForm()
         })
     }
@@ -77,6 +92,10 @@ const App = () => {
         .destroy(person.id)
         .then(result => {
           setPeople(people.filter((personIter) => personIter.id !== person.id))
+          setSuccessMessage(`${person.name} deleted!`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
         })
     }
   }
@@ -86,8 +105,10 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <SuccessNotification message={successMessage} />
+      <ErrorNotification message={errorMessage} />
       <Filter filter={filter} handleFilterChange={handleFilterChange}/>
-      <h2>add a new person</h2>
+      <h2>Add Contact</h2>
       <PersonForm
         addPerson={addPerson}
         newName={newName}
