@@ -1,12 +1,22 @@
 h1 {
+  font-size: 4em;
   color: green;
   font-style: italic;
+  text-align: center;
 }
 
 .note {
   color: grey;
   padding-top: 3px;
   font-size: 15px;
+}
+
+.important {
+  color: transparent;
+  font-size: 17px;
+  font-weight: bold;
+  background-image: linear-gradient(to left, violet, indigo, blue, green, yellow, orange, red);
+  -webkit-background-clip: text;
 }
 
 .error {
@@ -17,4 +27,21 @@ h1 {
   border-radius: 5px;
   padding: 10px;
   margin-bottom: 10px;
+}
+
+.note button {
+  margin-left: 10px;
+}
+
+.notebook {
+  width: 300px;
+}
+
+.mainContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.content {
+  width: 500px;
 }

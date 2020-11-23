@@ -23,6 +23,13 @@ const App = () => {
       })
   }, [])
 
+  const displayNotification = (message, setMessage) => {
+    setMessage(message)
+    setTimeout(() => {
+      setMessage(null)
+    }, 5000)
+  }
+
   const addPerson = (event) => {
     event.preventDefault()
 
@@ -43,19 +50,11 @@ const App = () => {
           .update(existingPerson.id, { ...existingPerson, ...personObject })
           .then(returnedPerson => {
             setPeople(people.map(person => person.id !== existingPerson.id ? person : returnedPerson))
-            setSuccessMessage(`${existingPerson.name}'s number has been updated.`)
-            setTimeout(() => {
-              setSuccessMessage(null)
-            }, 5000)
+            displayNotification(`${existingPerson.name}'s number has been updated.`, setSuccessMessage)
             clearForm()
           })
           .catch(error => {
-            setErrorMessage(`'${existingPerson.name}' was already deleted!`)
-            setTimeout(() => {
-              setErrorMessage(null)
-            }, 5000)
-            setPeople(people.filter(person => person.id !== existingPerson.id))
-            clearForm()
+            displayNotification(`${error.response.data.error}`, setErrorMessage)
           })
       } else {
         clearForm()
@@ -65,11 +64,12 @@ const App = () => {
         .create(personObject)
         .then(returnedPerson => {
           setPeople(people.concat(returnedPerson))
-          setSuccessMessage(`${returnedPerson.name} created!`)
-          setTimeout(() => {
-            setSuccessMessage(null)
-          }, 5000)
+          displayNotification(`${returnedPerson.name} created!`, setSuccessMessage)
           clearForm()
+        })
+        .catch(error => {
+          console.log(error.response.data)
+          displayNotification(`${error.response.data.error}`, setErrorMessage)
         })
     }
   }
@@ -92,10 +92,7 @@ const App = () => {
         .destroy(person.id)
         .then(result => {
           setPeople(people.filter((personIter) => personIter.id !== person.id))
-          setSuccessMessage(`${person.name} deleted!`)
-          setTimeout(() => {
-            setErrorMessage(null)
-          }, 5000)
+          displayNotification(`${person.name} deleted!`, setSuccessMessage)
         })
     }
   }
@@ -103,7 +100,7 @@ const App = () => {
   const peopleToShow = people.filter((person) => person.name.toLowerCase().includes(filter.toLowerCase()))
 
   return (
-    <div>
+    <div className="phonebook">
       <h2>Phonebook</h2>
       <SuccessNotification message={successMessage} />
       <ErrorNotification message={errorMessage} />

@@ -64,29 +64,33 @@ const App = () => {
     : notes.filter(note => note.important === true)
 
   return (
-    <div>
-      <h1>Notes for days</h1>
-      <Notification message={errorMessage} />
-      <div>
-        <button onClick={() => setShowAll(!showAll)}>
-          show {showAll ? 'important' : 'all'}
-        </button>
+    <div className="mainContainer">
+      <div className="content">
+
+        <h1>Notes for days</h1>
+        <Notification message={errorMessage} />
+        <div>
+          <button onClick={() => setShowAll(!showAll)}>
+            show {showAll ? 'important' : 'all'}
+          </button>
+        </div>
+        <ul className="notebook">
+          {notesToShow.map(note =>
+            <Note
+              key={note.id}
+              note={note}
+              toggleImportance={() => toggleImportanceOf(note.id)} />
+          )}
+        </ul>
+        <form onSubmit={addNote}>
+          <input
+            value={newNote}
+            onChange={handleNoteChange}/>
+          <button type="submit">save</button>
+        </form>
+        <Footer />
+
       </div>
-      <ul>
-        {notesToShow.map(note =>
-          <Note
-            key={note.id}
-            note={note}
-            toggleImportance={() => toggleImportanceOf(note.id)} />
-        )}
-      </ul>
-      <form onSubmit={addNote}>
-        <input
-          value={newNote}
-          onChange={handleNoteChange}/>
-        <button type="submit">save</button>
-      </form>
-      <Footer />
     </div>
   )
 }
